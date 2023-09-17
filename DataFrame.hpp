@@ -133,8 +133,6 @@ struct SeriesConverter<Series> {
 
 class DataFrame {
 public:
-    DataFrame(std::string_view fileName, std::vector<std::string> const& header = {}, std::string_view delimiter = ",");
-
     template <typename... Columns>
     DataFrame loc(Columns... columns) const
     {
@@ -196,12 +194,17 @@ public:
     TableIterator end() const;
 
 private:
+    friend DataFrame fromCsv(std::string_view, std::vector<std::string> const&, std::string_view);
+
     void addRow(std::vector<std::string>&& row);
     explicit DataFrame(std::vector<std::string> const& header);
+    explicit DataFrame(std::vector<std::string>&& header, std::vector<std::vector<std::string>>&& table);
 
     std::vector<std::string> _header;
     std::unordered_map<std::string, size_t> _headerMap;
     std::vector<std::vector<std::string>> _table;
 };
+
+DataFrame fromCsv(std::string_view fileName, std::vector<std::string> const& inputHeader = {}, std::string_view delimiter = ",");
 
 } // namespace df

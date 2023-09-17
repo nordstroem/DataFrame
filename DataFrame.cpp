@@ -52,33 +52,6 @@ Series TableIterator::operator*() const { return _table.get(_index); }
 
 Series TableIterator::operator->() const { return _table.get(_index); }
 
-DataFrame::DataFrame(std::string_view fileName,
-    std::vector<std::string> const& header,
-    std::string_view delimiter)
-    : _header(header)
-{
-    bool const hasHeader = header.size() == 0;
-    std::ifstream file(fileName.data());
-    assert(file.is_open());
-    std::string line;
-    size_t lineCount = 0;
-    while (std::getline(file, line)) {
-        std::vector<std::string> const row = splitString(line, delimiter);
-        if (hasHeader && lineCount == 0) {
-            _header = row;
-        } else {
-            assert(row.size() == _header.size());
-            _table.push_back(row);
-        }
-
-        lineCount++;
-    }
-
-    for (size_t i = 0; i < _header.size(); ++i) {
-        _headerMap[_header[i]] = i;
-    }
-}
-
 DataFrame DataFrame::query(std::function<bool(Series const&)> const& predicate) const
 {
     DataFrame result(_header);
@@ -150,10 +123,41 @@ DataFrame::DataFrame(std::vector<std::string> const& header)
     }
 }
 
+DataFrame::DataFrame(std::vector<std::string>&& header, std::vector<std::vector<std::string>>&& table)
+    : DataFrame(header)
+{
+    _table = std::move(table);
+}
+
+DataFrame fromCsv(std::string_view fileName, std::vector<std::string> const& inputHeader, std::string_view delimiter)
+{
+    bool const hasHeader = inputHeader.size() == 0;
+    std::ifstream file(fileName.data());
+    assert(file.is_open());
+    std::string line;
+    size_t lineCount = 0;
+    std::vector<std::vector<std::string>> table;
+    std::vector<std::string> header = inputHeader;
+
+    while (std::getline(file, line)) {
+        std::vector<std::string> const row = splitString(line, delimiter);
+        if (hasHeader && lineCount == 0) {
+            header = row;
+        } else {
+            assert(row.size() == header.size());
+            table.push_back(row);
+        }
+
+        lineCount++;
+    }
+
+    return DataFrame(std::move(header), std::move(table));
+}
+
 TEST_CASE("getFullRow")
 {
 
-    DataFrame df("test.csv", { "a", "b", "c" });
+    DataFrame df = fromCsv("test.csv", { "a", "b", "c" });
     Series const row = df.get(0);
     CHECK_EQ(row.get("a"), "1");
     CHECK_EQ(row.get("b"), "2");
@@ -162,7 +166,7 @@ TEST_CASE("getFullRow")
 
 TEST_CASE("getRowSubset")
 {
-    DataFrame df("test.csv", { "a", "b", "c" });
+    DataFrame df = fromCsv("test.csv", { "a", "b", "c" });
     auto const row = df.get(0, "a", "c");
     CHECK_EQ(row.get("a"), "1");
     CHECK_EQ(row.get("c"), "3");
@@ -170,7 +174,7 @@ TEST_CASE("getRowSubset")
 
 TEST_CASE("query")
 {
-    DataFrame df("test.csv", { "a", "b", "c" });
+    DataFrame df = fromCsv("test.csv", { "a", "b", "c" });
     auto const filtereddf = df.query([](Series const& row) { return row.get<int>("a") == 1 && row.get<int>("b") == 2; });
     auto const row = filtereddf.get(0);
     CHECK_EQ(row.get("a"), "1");
@@ -180,7 +184,7 @@ TEST_CASE("query")
 
 TEST_CASE("getRows")
 {
-    DataFrame df("test.csv", { "a", "b", "c" });
+    DataFrame df = fromCsv("test.csv", { "a", "b", "c" });
     auto const newdf = df.loc("a", "c");
     CHECK_EQ(newdf.size(), 2);
     CHECK_EQ(newdf.header(), std::vector<std::string>({ "a", "c" }));
@@ -188,7 +192,7 @@ TEST_CASE("getRows")
 
 TEST_CASE("getValue")
 {
-    DataFrame df("test.csv", { "a", "b", "c" });
+    DataFrame df = fromCsv("test.csv", { "a", "b", "c" });
     CHECK_EQ(df.get<int>(0, "a"), 1);
     CHECK_EQ(df.get<int>(0, "b"), 2);
     CHECK_EQ(df.get<std::string>(0, "c"), "3");
@@ -209,7 +213,7 @@ TEST_CASE("getSeriesSubset")
 
 TEST_CASE("iterateThroughdf")
 {
-    DataFrame const df("test_with_header.csv");
+    DataFrame const df = fromCsv("test_with_header.csv");
     size_t count = 1;
     for (auto const& row : df) {
         CHECK_EQ(row.get<int>("a"), count++);
@@ -220,14 +224,14 @@ TEST_CASE("iterateThroughdf")
 
 TEST_CASE("query")
 {
-    DataFrame const df("test_with_header.csv");
+    DataFrame const df = fromCsv("test_with_header.csv");
     const auto filteredDF = df.query([](const Series& row) { return row.get<int>("a") == 1; });
     CHECK_EQ(filteredDF.size(), 1);
 }
 
 TEST_CASE("query with expression")
 {
-    DataFrame const df("test_with_header.csv");
+    DataFrame const df = fromCsv("test_with_header.csv");
     const auto filteredDF = df.query("a"_c == 1);
     CHECK_EQ(filteredDF.size(), 1);
     CHECK_EQ(filteredDF.get<int>(0, "a"), 1);
@@ -235,21 +239,21 @@ TEST_CASE("query with expression")
 
 TEST_CASE("query with expression - or")
 {
-    DataFrame const df("test_with_header.csv");
+    DataFrame const df = fromCsv("test_with_header.csv");
     const auto filteredDF = df.query("a"_c == 1 || "b"_c == 5);
     CHECK_EQ(filteredDF.size(), 2);
 }
 
 TEST_CASE("query with expression - and")
 {
-    DataFrame const df("test_with_header.csv");
+    DataFrame const df = fromCsv("test_with_header.csv");
     const auto filteredDF = df.query("a"_c == 1 && "b"_c == 5);
     CHECK_EQ(filteredDF.size(), 0);
 }
 
 TEST_CASE("query with expression - less")
 {
-    DataFrame const df("test_with_header.csv");
+    DataFrame const df = fromCsv("test_with_header.csv");
     const auto filteredDF = df.query("a"_c < 2);
     CHECK_EQ(filteredDF.size(), 1);
     CHECK_EQ(filteredDF.get<int>(0, "a"), 1);
