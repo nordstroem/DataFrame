@@ -1,4 +1,5 @@
 #pragma once
+#include "BooleanExpression.hpp"
 #include <cassert>
 #include <functional>
 #include <iterator>
@@ -171,6 +172,7 @@ public:
     }
 
     DataFrame query(std::function<bool(Series const&)> const& predicate) const;
+    DataFrame query(std::unique_ptr<BooleanExpression> expression) const;
 
     std::vector<std::string> header() const;
     size_t size() const;

@@ -91,6 +91,36 @@ DataFrame DataFrame::query(std::function<bool(Series const&)> const& predicate) 
     return result;
 }
 
+DataFrame DataFrame::query(std::unique_ptr<BooleanExpression> expression) const
+{
+
+    auto const getOr = [](const Series& row, std::string_view col) {
+        const std::string colStr = std::string(col);
+        if (row._headerMap.find(colStr) != row._headerMap.end()) {
+            return row.get(colStr);
+        }
+        return colStr;
+    };
+
+    DataFrame result(_header);
+    for (Series row : *this) {
+        auto const rowEvaluator = [&](std::string_view col1, Operator op, std::string_view col2) {
+            switch (op) {
+            case Operator::Equal:
+                return getOr(row, col1) == getOr(row, col2);
+            case Operator::NotEqual:
+                return getOr(row, col1) != getOr(row, col2);
+            }
+            return false;
+        };
+        if (expression->eval(rowEvaluator)) {
+            result.addRow(std::move(row._data));
+        }
+    }
+
+    return result;
+}
+
 std::vector<std::string> DataFrame::header() const { return _header; }
 
 size_t DataFrame::size() const { return _table.size(); }
@@ -185,6 +215,13 @@ TEST_CASE("query")
 {
     DataFrame const df("test_with_header.csv");
     const auto filteredDF = df.query([](const Series& row) { return row.get<int>("a") == 1; });
+    CHECK_EQ(filteredDF.size(), 1);
+}
+
+TEST_CASE("query with expression")
+{
+    DataFrame const df("test_with_header.csv");
+    const auto filteredDF = df.query("a"_c == 1);
     CHECK_EQ(filteredDF.size(), 1);
 }
 
