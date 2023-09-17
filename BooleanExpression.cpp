@@ -34,9 +34,9 @@ enum class Operator
     GreaterOrEqual,
 };
 
-struct TreeNode
+struct LeafNode
 {
-    TreeNode(const ColumnName &col1, Operator op, const ColumnName &col2)
+    LeafNode(const ColumnName &col1, Operator op, const ColumnName &col2)
         : col1(col1), op(op), col2(col2)
     {
     }
@@ -46,81 +46,81 @@ struct TreeNode
     const ColumnName col2;
 };
 
-enum class TreeType
+enum class ExpressionType
 {
     Value,
     And,
     Or
 };
 
-struct Tree
+struct BooleanExpression
 {
-    Tree(TreeNode comparison)
-        : type(TreeType::Value), comparison(comparison)
+    BooleanExpression(LeafNode comparison)
+        : type(ExpressionType::Value), comparison(comparison)
     {
     }
-    Tree(TreeType type, std::unique_ptr<Tree> left, std::unique_ptr<Tree> right)
+    BooleanExpression(ExpressionType type, std::unique_ptr<BooleanExpression> left, std::unique_ptr<BooleanExpression> right)
         : type(type), left(std::move(left)), right(std::move(right))
     {
     }
-    const TreeType type;
-    const std::optional<TreeNode> comparison;
-    const std::unique_ptr<Tree> left;
-    const std::unique_ptr<Tree> right;
+    const ExpressionType type;
+    const std::optional<LeafNode> comparison;
+    const std::unique_ptr<BooleanExpression> left;
+    const std::unique_ptr<BooleanExpression> right;
 
     bool eval(std::function<bool(const std::string_view col1, Operator op, std::string_view col2)> func) const
     {
         switch (type)
         {
-        case TreeType::Value:
+        case ExpressionType::Value:
             return func(comparison->col1.name, comparison->op, comparison->col2.name);
-        case TreeType::And:
+        case ExpressionType::And:
             return left->eval(func) && right->eval(func);
-        case TreeType::Or:
+        case ExpressionType::Or:
             return left->eval(func) || right->eval(func);
         }
         return false;
     }
 };
 
-inline std::unique_ptr<Tree> operator&&(std::unique_ptr<Tree> left, std::unique_ptr<Tree> right)
+inline std::unique_ptr<BooleanExpression> operator&&(std::unique_ptr<BooleanExpression> left, std::unique_ptr<BooleanExpression> right)
 {
-    return std::make_unique<Tree>(TreeType::And, std::move(left), std::move(right));
+    return std::make_unique<BooleanExpression>(ExpressionType::And, std::move(left), std::move(right));
 }
 
-inline std::unique_ptr<Tree> operator||(std::unique_ptr<Tree> left, std::unique_ptr<Tree> right)
+inline std::unique_ptr<BooleanExpression> operator||(std::unique_ptr<BooleanExpression> left, std::unique_ptr<BooleanExpression> right)
 {
-    return std::make_unique<Tree>(TreeType::Or, std::move(left), std::move(right));
+    return std::make_unique<BooleanExpression>(ExpressionType::Or, std::move(left), std::move(right));
 }
 
-inline std::unique_ptr<Tree> operator==(const ColumnName &col1, const ColumnName &col2)
+inline std::unique_ptr<BooleanExpression> operator==(const ColumnName &col1, const ColumnName &col2)
 {
-    return std::make_unique<Tree>(TreeNode(col1, Operator::Equal, col2));
+    return std::make_unique<BooleanExpression>(LeafNode(col1, Operator::Equal, col2));
 }
 
-inline std::unique_ptr<Tree> operator!=(const ColumnName &col1, const ColumnName &col2)
+inline std::unique_ptr<BooleanExpression> operator!=(const ColumnName &col1, const ColumnName &col2)
 {
-    return std::make_unique<Tree>(TreeNode(col1, Operator::NotEqual, col2));
+    return std::make_unique<BooleanExpression>(LeafNode(col1, Operator::NotEqual, col2));
 }
 
-inline std::unique_ptr<Tree> operator<(const ColumnName &col1, const ColumnName &col2)
+inline std::unique_ptr<BooleanExpression> operator<(const ColumnName &col1, const ColumnName &col2)
 {
-    return std::make_unique<Tree>(TreeNode(col1, Operator::Less, col2));
+    return std::make_unique<BooleanExpression>(LeafNode(col1, Operator::Less, col2));
 }
 
-inline std::unique_ptr<Tree> operator<=(const ColumnName &col1, const ColumnName &col2)
+inline std::unique_ptr<BooleanExpression> operator<=(const ColumnName &col1, const ColumnName &col2)
 {
-    return std::make_unique<Tree>(TreeNode(col1, Operator::LessOrEqual, col2));
+    return std::make_unique<BooleanExpression>(LeafNode(col1, Operator::LessOrEqual, col2));
 }
 
-inline std::unique_ptr<Tree> operator>(const ColumnName &col1, const ColumnName &col2)
+inline std::unique_ptr<BooleanExpression> operator>(const ColumnName &col1, const ColumnName &col2)
 {
-    return std::make_unique<Tree>(TreeNode(col1, Operator::Greater, col2));
+    return std::make_unique<BooleanExpression>(LeafNode(col1, Operator::Greater, col2));
 }
 
-inline std::unique_ptr<Tree> operator>=(const ColumnName &col1, const ColumnName &col2)
+inline std::unique_ptr<BooleanExpression> operator>=(const ColumnName &col1, const ColumnName &col2)
 {
-    return std::make_unique<Tree>(TreeNode(col1, Operator::GreaterOrEqual, col2));
+    return std::make_unique<BooleanExpression>(LeafNode(col1, Operator::GreaterOrEqual, col2));
 }
 
 int main()
