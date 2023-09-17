@@ -1,8 +1,8 @@
 #include <functional>
-#include <iostream>
 #include <memory>
 #include <optional>
 #include <string>
+#include "doctest.h"
 
 class ColumnName
 {
@@ -55,7 +55,7 @@ enum class ExpressionType
 
 struct BooleanExpression
 {
-    BooleanExpression(LeafNode comparison)
+    BooleanExpression(const LeafNode &comparison)
         : type(ExpressionType::Value), comparison(comparison)
     {
     }
@@ -123,9 +123,9 @@ inline std::unique_ptr<BooleanExpression> operator>=(const ColumnName &col1, con
     return std::make_unique<BooleanExpression>(LeafNode(col1, Operator::GreaterOrEqual, col2));
 }
 
-int main()
+TEST_CASE("Boolean expressions")
 {
-    auto const visitor = [](auto const &col1, Operator op, auto const &col2)
+    auto const standardVisitor = [](auto const &col1, Operator op, auto const &col2)
     {
         switch (op)
         {
@@ -136,8 +136,44 @@ int main()
         }
         return false;
     };
-
-    const auto x = "3"_c == 3 || "a"_c != "a";
-
-    std::cout << x->eval(visitor) << "\n";
+    SUBCASE("equality")
+    {
+        const auto expression = "x"_c == "x";
+        CHECK(expression->eval(standardVisitor));
+    }
+    SUBCASE("inequality")
+    {
+        const auto expression = "x"_c != "x";
+        CHECK_FALSE(expression->eval(standardVisitor));
+    }
+    SUBCASE("and operator - true")
+    {
+        const auto expression = "x"_c == "x" && "y"_c == "y";
+        CHECK(expression->eval(standardVisitor));
+    }
+    SUBCASE("and operator - false")
+    {
+        const auto expression = "x"_c == "x" && "y"_c == "z";
+        CHECK_FALSE(expression->eval(standardVisitor));
+    }
+    SUBCASE("or operator - true")
+    {
+        const auto expression = "x"_c == "z" || "y"_c == "y";
+        CHECK(expression->eval(standardVisitor));
+    }
+    SUBCASE("or operator - false")
+    {
+        const auto expression = "x"_c == "z" || "y"_c == "z";
+        CHECK_FALSE(expression->eval(standardVisitor));
+    }
+    SUBCASE("two or operator - true")
+    {
+        const auto expression = "x"_c == "z" || ("y"_c == "z" || "z"_c == "z");
+        CHECK(expression->eval(standardVisitor));
+    }
+    SUBCASE("and + or operator")
+    {
+        const auto expression = "x"_c == "x" && ("y"_c == "z" || "z"_c != "z");
+        CHECK_FALSE(expression->eval(standardVisitor));
+    }
 }
