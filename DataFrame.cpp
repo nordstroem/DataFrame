@@ -110,6 +110,14 @@ DataFrame DataFrame::query(std::unique_ptr<BooleanExpression> expression) const
                 return getOr(row, col1) == getOr(row, col2);
             case Operator::NotEqual:
                 return getOr(row, col1) != getOr(row, col2);
+            case Operator::Less:
+                return std::stod(getOr(row, col1)) < std::stod(getOr(row, col2));
+            case Operator::LessOrEqual:
+                return std::stod(getOr(row, col1)) <= std::stod(getOr(row, col2));
+            case Operator::Greater:
+                return std::stod(getOr(row, col1)) > std::stod(getOr(row, col2));
+            case Operator::GreaterOrEqual:
+                return std::stod(getOr(row, col1)) >= std::stod(getOr(row, col2));
             }
             return false;
         };
@@ -223,6 +231,29 @@ TEST_CASE("query with expression")
     DataFrame const df("test_with_header.csv");
     const auto filteredDF = df.query("a"_c == 1);
     CHECK_EQ(filteredDF.size(), 1);
+    CHECK_EQ(filteredDF.get<int>(0, "a"), 1);
+}
+
+TEST_CASE("query with expression - or")
+{
+    DataFrame const df("test_with_header.csv");
+    const auto filteredDF = df.query("a"_c == 1 || "b"_c == 5);
+    CHECK_EQ(filteredDF.size(), 2);
+}
+
+TEST_CASE("query with expression - and")
+{
+    DataFrame const df("test_with_header.csv");
+    const auto filteredDF = df.query("a"_c == 1 && "b"_c == 5);
+    CHECK_EQ(filteredDF.size(), 0);
+}
+
+TEST_CASE("query with expression - less")
+{
+    DataFrame const df("test_with_header.csv");
+    const auto filteredDF = df.query("a"_c < 2);
+    CHECK_EQ(filteredDF.size(), 1);
+    CHECK_EQ(filteredDF.get<int>(0, "a"), 1);
 }
 
 } // namespace df

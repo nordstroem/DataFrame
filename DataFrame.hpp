@@ -23,22 +23,38 @@ struct RowConverter<std::vector<std::string>> {
 
 template <>
 struct RowConverter<std::string> {
-    static std::string convert(std::vector<std::string> const& str) { return str[0]; }
+    static std::string convert(std::vector<std::string> const& str)
+    {
+        assert(str.size() == 1);
+        return str[0];
+    }
 };
 
 template <>
 struct RowConverter<float> {
-    static float convert(std::vector<std::string> const& str) { return std::stof(str[0]); }
+    static float convert(std::vector<std::string> const& str)
+    {
+        assert(str.size() == 1);
+        return std::stof(str[0]);
+    }
 };
 
 template <>
 struct RowConverter<int> {
-    static float convert(std::vector<std::string> const& str) { return std::stoi(str[0]); }
+    static float convert(std::vector<std::string> const& str)
+    {
+        assert(str.size() == 1);
+        return std::stoi(str[0]);
+    }
 };
 
 template <>
 struct RowConverter<size_t> {
-    static size_t convert(std::vector<std::string> const& str) { return std::stoul(str[0]); }
+    static size_t convert(std::vector<std::string> const& str)
+    {
+        assert(str.size() == 1);
+        return std::stoul(str[0]);
+    }
 };
 
 class Series {
