@@ -129,7 +129,7 @@ DataFrame::DataFrame(std::vector<std::string>&& header, std::vector<std::vector<
     _table = std::move(table);
 }
 
-DataFrame fromCsv(std::string_view fileName, std::vector<std::string> const& inputHeader, std::string_view delimiter)
+DataFrame readCsv(std::string_view fileName, std::vector<std::string> const& inputHeader, std::string_view delimiter)
 {
     bool const hasHeader = inputHeader.size() == 0;
     std::ifstream file(fileName.data());
@@ -157,7 +157,7 @@ DataFrame fromCsv(std::string_view fileName, std::vector<std::string> const& inp
 TEST_CASE("getFullRow")
 {
 
-    DataFrame df = fromCsv("test.csv", { "a", "b", "c" });
+    DataFrame df = readCsv("test_data/test.csv", { "a", "b", "c" });
     Series const row = df.get(0);
     CHECK_EQ(row.get("a"), "1");
     CHECK_EQ(row.get("b"), "2");
@@ -166,7 +166,7 @@ TEST_CASE("getFullRow")
 
 TEST_CASE("getRowSubset")
 {
-    DataFrame df = fromCsv("test.csv", { "a", "b", "c" });
+    DataFrame df = readCsv("test_data/test.csv", { "a", "b", "c" });
     auto const row = df.get(0, "a", "c");
     CHECK_EQ(row.get("a"), "1");
     CHECK_EQ(row.get("c"), "3");
@@ -174,7 +174,7 @@ TEST_CASE("getRowSubset")
 
 TEST_CASE("query")
 {
-    DataFrame df = fromCsv("test.csv", { "a", "b", "c" });
+    DataFrame df = readCsv("test_data/test.csv", { "a", "b", "c" });
     auto const filtereddf = df.query([](Series const& row) { return row.get<int>("a") == 1 && row.get<int>("b") == 2; });
     auto const row = filtereddf.get(0);
     CHECK_EQ(row.get("a"), "1");
@@ -184,7 +184,7 @@ TEST_CASE("query")
 
 TEST_CASE("getRows")
 {
-    DataFrame df = fromCsv("test.csv", { "a", "b", "c" });
+    DataFrame df = readCsv("test_data/test.csv", { "a", "b", "c" });
     auto const newdf = df.loc("a", "c");
     CHECK_EQ(newdf.size(), 2);
     CHECK_EQ(newdf.header(), std::vector<std::string>({ "a", "c" }));
@@ -192,7 +192,7 @@ TEST_CASE("getRows")
 
 TEST_CASE("getValue")
 {
-    DataFrame df = fromCsv("test.csv", { "a", "b", "c" });
+    DataFrame df = readCsv("test_data/test.csv", { "a", "b", "c" });
     CHECK_EQ(df.get<int>(0, "a"), 1);
     CHECK_EQ(df.get<int>(0, "b"), 2);
     CHECK_EQ(df.get<std::string>(0, "c"), "3");
@@ -213,7 +213,7 @@ TEST_CASE("getSeriesSubset")
 
 TEST_CASE("iterateThroughdf")
 {
-    DataFrame const df = fromCsv("test_with_header.csv");
+    DataFrame const df = readCsv("test_data/test_with_header.csv");
     size_t count = 1;
     for (auto const& row : df) {
         CHECK_EQ(row.get<int>("a"), count++);
@@ -224,14 +224,14 @@ TEST_CASE("iterateThroughdf")
 
 TEST_CASE("query")
 {
-    DataFrame const df = fromCsv("test_with_header.csv");
+    DataFrame const df = readCsv("test_data/test_with_header.csv");
     const auto filteredDF = df.query([](const Series& row) { return row.get<int>("a") == 1; });
     CHECK_EQ(filteredDF.size(), 1);
 }
 
 TEST_CASE("query with expression")
 {
-    DataFrame const df = fromCsv("test_with_header.csv");
+    DataFrame const df = readCsv("test_data/test_with_header.csv");
     const auto filteredDF = df.query("a"_c == 1);
     CHECK_EQ(filteredDF.size(), 1);
     CHECK_EQ(filteredDF.get<int>(0, "a"), 1);
@@ -239,21 +239,21 @@ TEST_CASE("query with expression")
 
 TEST_CASE("query with expression - or")
 {
-    DataFrame const df = fromCsv("test_with_header.csv");
+    DataFrame const df = readCsv("test_data/test_with_header.csv");
     const auto filteredDF = df.query("a"_c == 1 || "b"_c == 5);
     CHECK_EQ(filteredDF.size(), 2);
 }
 
 TEST_CASE("query with expression - and")
 {
-    DataFrame const df = fromCsv("test_with_header.csv");
+    DataFrame const df = readCsv("test_data/test_with_header.csv");
     const auto filteredDF = df.query("a"_c == 1 && "b"_c == 5);
     CHECK_EQ(filteredDF.size(), 0);
 }
 
 TEST_CASE("query with expression - less")
 {
-    DataFrame const df = fromCsv("test_with_header.csv");
+    DataFrame const df = readCsv("test_data/test_with_header.csv");
     const auto filteredDF = df.query("a"_c < 2);
     CHECK_EQ(filteredDF.size(), 1);
     CHECK_EQ(filteredDF.get<int>(0, "a"), 1);

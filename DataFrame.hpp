@@ -2,7 +2,6 @@
 #include "BooleanExpression.hpp"
 #include <cassert>
 #include <functional>
-#include <iterator>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -194,7 +193,7 @@ public:
     TableIterator end() const;
 
 private:
-    friend DataFrame fromCsv(std::string_view, std::vector<std::string> const&, std::string_view);
+    friend DataFrame readCsv(std::string_view, std::vector<std::string> const&, std::string_view);
 
     void addRow(std::vector<std::string>&& row);
     explicit DataFrame(std::vector<std::string> const& header);
@@ -205,6 +204,6 @@ private:
     std::vector<std::vector<std::string>> _table;
 };
 
-DataFrame fromCsv(std::string_view fileName, std::vector<std::string> const& inputHeader = {}, std::string_view delimiter = ",");
+DataFrame readCsv(std::string_view fileName, std::vector<std::string> const& inputHeader = {}, std::string_view delimiter = ",");
 
 } // namespace df
