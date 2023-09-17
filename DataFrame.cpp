@@ -94,17 +94,16 @@ DataFrame DataFrame::query(std::function<bool(Series const&)> const& predicate) 
 DataFrame DataFrame::query(std::unique_ptr<BooleanExpression> expression) const
 {
 
-    auto const getOr = [](const Series& row, std::string_view col) {
-        const std::string colStr = std::string(col);
-        if (row._headerMap.find(colStr) != row._headerMap.end()) {
-            return row.get(colStr);
+    auto const getOr = [](const Series& row, const std::string& col) {
+        if (row._headerMap.find(col) != row._headerMap.end()) {
+            return row.get(col);
         }
-        return colStr;
+        return col;
     };
 
     DataFrame result(_header);
     for (Series row : *this) {
-        auto const rowEvaluator = [&](std::string_view col1, Operator op, std::string_view col2) {
+        auto const rowEvaluator = [&](const std::string& col1, Operator op, const std::string& col2) {
             switch (op) {
             case Operator::Equal:
                 return getOr(row, col1) == getOr(row, col2);

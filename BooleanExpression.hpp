@@ -49,7 +49,7 @@ struct BooleanExpression {
     const std::unique_ptr<BooleanExpression> left;
     const std::unique_ptr<BooleanExpression> right;
 
-    bool eval(std::function<bool(const std::string_view col1, Operator op, std::string_view col2)> func) const;
+    bool eval(std::function<bool(const std::string& col1, Operator op, const std::string& col2)> func) const;
 };
 
 std::unique_ptr<BooleanExpression> operator&&(std::unique_ptr<BooleanExpression> left, std::unique_ptr<BooleanExpression> right);

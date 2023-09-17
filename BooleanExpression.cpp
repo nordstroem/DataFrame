@@ -26,7 +26,7 @@ BooleanExpression::BooleanExpression(ExpressionType type, std::unique_ptr<Boolea
 {
 }
 
-bool BooleanExpression::eval(std::function<bool(const std::string_view col1, Operator op, std::string_view col2)> func) const
+bool BooleanExpression::eval(std::function<bool(const std::string& col1, Operator op, const std::string& col2)> func) const
 {
     switch (type) {
     case ExpressionType::Value:
