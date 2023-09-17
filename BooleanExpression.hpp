@@ -5,6 +5,7 @@
 #include <string>
 
 namespace df {
+
 class ColumnName {
 public:
     template <typename T>
