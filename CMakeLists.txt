@@ -12,9 +12,6 @@ conan_basic_setup()
 
 add_library(dataframe)
 target_include_directories(dataframe PUBLIC "src")
-target_include_directories(dataframe PUBLIC "test")
 
 target_link_libraries(dataframe PUBLIC ${CONAN_LIBS})
 add_subdirectory("src")
-
-add_subdirectory("test")
