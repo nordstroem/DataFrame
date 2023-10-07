@@ -1,23 +1,23 @@
 #pragma once
 #include <functional>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <optional>
-#include <string>
 
 namespace df {
+using json = nlohmann::json;
 
-class ColumnName {
+class ExpressionValue {
 public:
     template <typename T>
-    ColumnName(T value)
-        : name(std::to_string(value))
+    ExpressionValue(T value)
+        : value(value)
     {
     }
-    ColumnName(const char* value);
-    const std::string name;
+    const json value;
 };
 
-ColumnName operator""_c(const char* str, std::size_t);
+ExpressionValue operator""_c(const char* str, std::size_t);
 
 enum class Operator {
     Equal,
@@ -29,9 +29,9 @@ enum class Operator {
 };
 
 struct LeafNode {
-    const ColumnName col1;
+    const ExpressionValue col1;
     const Operator op;
-    const ColumnName col2;
+    const ExpressionValue col2;
 };
 
 enum class ExpressionType {
@@ -49,16 +49,16 @@ struct BooleanExpression {
     const std::unique_ptr<BooleanExpression> left;
     const std::unique_ptr<BooleanExpression> right;
 
-    bool eval(std::function<bool(const std::string& col1, Operator op, const std::string& col2)> func) const;
+    bool eval(std::function<bool(const json&, Operator, const json&)> func) const;
 };
 
 std::unique_ptr<BooleanExpression> operator&&(std::unique_ptr<BooleanExpression> left, std::unique_ptr<BooleanExpression> right);
 std::unique_ptr<BooleanExpression> operator||(std::unique_ptr<BooleanExpression> left, std::unique_ptr<BooleanExpression> right);
-std::unique_ptr<BooleanExpression> operator==(const ColumnName& col1, const ColumnName& col2);
-std::unique_ptr<BooleanExpression> operator!=(const ColumnName& col1, const ColumnName& col2);
-std::unique_ptr<BooleanExpression> operator<(const ColumnName& col1, const ColumnName& col2);
-std::unique_ptr<BooleanExpression> operator<=(const ColumnName& col1, const ColumnName& col2);
-std::unique_ptr<BooleanExpression> operator>(const ColumnName& col1, const ColumnName& col2);
-std::unique_ptr<BooleanExpression> operator>=(const ColumnName& col1, const ColumnName& col2);
+std::unique_ptr<BooleanExpression> operator==(const ExpressionValue& col1, const ExpressionValue& col2);
+std::unique_ptr<BooleanExpression> operator!=(const ExpressionValue& col1, const ExpressionValue& col2);
+std::unique_ptr<BooleanExpression> operator<(const ExpressionValue& col1, const ExpressionValue& col2);
+std::unique_ptr<BooleanExpression> operator<=(const ExpressionValue& col1, const ExpressionValue& col2);
+std::unique_ptr<BooleanExpression> operator>(const ExpressionValue& col1, const ExpressionValue& col2);
+std::unique_ptr<BooleanExpression> operator>=(const ExpressionValue& col1, const ExpressionValue& col2);
 
 }
