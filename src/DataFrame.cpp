@@ -97,6 +97,16 @@ DataFrame DataFrame::query(std::unique_ptr<BooleanExpression> expression) const
     return DataFrame(df);
 }
 
+size_t DataFrame::size() const
+{
+    return _data["data"].size();
+}
+
+Series DataFrame::first() const
+{
+    return *DataFrameIterator(_data, 0);
+}
+
 DataFrameIterator DataFrame::begin() const
 {
     return DataFrameIterator(_data, 0);

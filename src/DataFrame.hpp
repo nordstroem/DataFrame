@@ -44,6 +44,8 @@ class DataFrame {
 public:
     DataFrame(const json& data);
     DataFrame query(std::unique_ptr<BooleanExpression> expression) const;
+    size_t size() const;
+    Series first() const;
     DataFrameIterator begin() const;
     DataFrameIterator end() const;
 
