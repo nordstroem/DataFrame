@@ -10,10 +10,7 @@ public:
     explicit Series(const json& data);
 
     template <typename T>
-    T get(const std::string& column) const
-    {
-        return _data[column].get<T>();
-    }
+    T get(const std::string& columns) const;
 
     const json& data() const;
 
@@ -42,7 +39,7 @@ private:
 
 class DataFrame {
 public:
-    DataFrame(const json& data);
+    explicit DataFrame(const json& data);
     DataFrame query(std::unique_ptr<BooleanExpression> expression) const;
     size_t size() const;
     Series first() const;
