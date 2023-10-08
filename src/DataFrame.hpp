@@ -12,7 +12,7 @@ public:
     explicit Series(const json& data);
 
     template <typename T>
-    T get(const std::string& columns) const;
+    T get(const std::string_view columns) const;
 
     const json& data() const;
 
@@ -44,7 +44,7 @@ public:
     explicit DataFrame(const json& data);
 
     DataFrame query(std::unique_ptr<BooleanExpression> expression) const;
-    DataFrame queryEq(const std::string& column, json value) const;
+    DataFrame queryEq(std::string_view column, const json& value) const;
     size_t size() const;
     Series at(size_t index) const;
     Series first() const;
@@ -56,9 +56,9 @@ private:
     json _data;
 };
 
-DataFrame fromJson(const std::string& path);
+DataFrame fromJson(std::string_view path);
 DataFrame fromJson(const json& data);
-DataFrame fromCsv(const std::string& path, std::string_view delimiter = ",");
+DataFrame fromCsv(std::string_view path, std::string_view delimiter = ",");
 DataFrame fromCsv(std::istream& stream, std::string_view delimiter = ",");
 
 std::vector<std::string> splitString(std::string str, std::string_view delimiter);

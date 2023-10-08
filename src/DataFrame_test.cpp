@@ -8,14 +8,14 @@ using namespace nlohmann::literals;
 using namespace Eigen;
 
 namespace {
-static const json jdf = R"(
+static const json testJson = R"(
         {
             "columns": ["a","b","c"],
             "data": [[1,2,3],[4,5,6]]
         }
     )"_json;
 
-static const DataFrame dataFrame(jdf);
+static const DataFrame dataFrame(testJson);
 }
 
 TEST(DataFrame, iterateThroughDF)

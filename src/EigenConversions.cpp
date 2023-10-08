@@ -7,9 +7,9 @@ namespace df {
 using namespace Eigen;
 
 template <>
-Vector3f Series::get(const std::string& columns) const
+Vector3f Series::get(std::string_view columns) const
 {
-    const auto columnSplit = splitString(columns, ",");
+    const auto columnSplit = splitString(std::string(columns), ",");
     assert(columnSplit.size() == 3);
 
     return Vector3f(_data[columnSplit[0]],
@@ -18,9 +18,9 @@ Vector3f Series::get(const std::string& columns) const
 }
 
 template <>
-Vector2f Series::get(const std::string& columns) const
+Vector2f Series::get(std::string_view columns) const
 {
-    const auto columnSplit = splitString(columns, ",");
+    const auto columnSplit = splitString(std::string(columns), ",");
     assert(columnSplit.size() == 2);
 
     return Vector2f(_data[columnSplit[0]],
@@ -28,9 +28,9 @@ Vector2f Series::get(const std::string& columns) const
 }
 
 template <>
-Vector3i Series::get(const std::string& columns) const
+Vector3i Series::get(std::string_view columns) const
 {
-    const auto columnSplit = splitString(columns, ",");
+    const auto columnSplit = splitString(std::string(columns), ",");
     assert(columnSplit.size() == 3);
 
     return Vector3i(_data[columnSplit[0]],
@@ -39,9 +39,9 @@ Vector3i Series::get(const std::string& columns) const
 }
 
 template <>
-Vector2i Series::get(const std::string& columns) const
+Vector2i Series::get(std::string_view columns) const
 {
-    const auto columnSplit = splitString(columns, ",");
+    const auto columnSplit = splitString(std::string(columns), ",");
     assert(columnSplit.size() == 2);
 
     return Vector2i(_data[columnSplit[0]],

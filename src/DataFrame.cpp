@@ -11,16 +11,16 @@ Series::Series(const json& data)
 }
 
 template <typename T>
-T Series::get(const std::string& column) const
+T Series::get(std::string_view column) const
 {
     return _data[column].get<T>();
 }
 
-template int Series::get<int>(const std::string&) const;
-template uint64_t Series::get<uint64_t>(const std::string&) const;
-template float Series::get<float>(const std::string&) const;
-template double Series::get<double>(const std::string&) const;
-template std::string Series::get<std::string>(const std::string&) const;
+template int Series::get<int>(std::string_view) const;
+template uint64_t Series::get<uint64_t>(std::string_view) const;
+template float Series::get<float>(std::string_view) const;
+template double Series::get<double>(std::string_view) const;
+template std::string Series::get<std::string>(std::string_view) const;
 
 const json& Series::data() const
 {
@@ -109,7 +109,7 @@ DataFrame DataFrame::query(std::unique_ptr<BooleanExpression> expression) const
     return DataFrame(df);
 }
 
-DataFrame DataFrame::queryEq(const std::string& column, json value) const
+DataFrame DataFrame::queryEq(std::string_view column, const json& value) const
 {
     json df;
     df["columns"] = _data["columns"];
@@ -166,16 +166,16 @@ DataFrame fromJson(const json& data)
     return DataFrame(data);
 }
 
-DataFrame fromJson(const std::string& path)
+DataFrame fromJson(std::string_view path)
 {
-    std::ifstream file(path);
+    std::ifstream file(std::string { path });
     assert(file.is_open());
     return DataFrame(json::parse(file));
 }
 
-DataFrame fromCsv(const std::string& path, std::string_view delimiter)
+DataFrame fromCsv(std::string_view path, std::string_view delimiter)
 {
-    std::ifstream file(path);
+    std::ifstream file(std::string { path });
     assert(file.is_open());
     return fromCsv(file, delimiter);
 }
