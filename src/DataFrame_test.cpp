@@ -1,6 +1,7 @@
 #include "DataFrame.hpp"
 #include "gtest/gtest.h"
 #include <Eigen/Core>
+#include <iostream>
 
 using namespace df;
 using namespace nlohmann::literals;
@@ -77,4 +78,15 @@ TEST(DataFrame, queryEq)
     const auto filteredDF = dataFrame.queryEq("a", 1);
     EXPECT_EQ(filteredDF.size(), 1);
     EXPECT_EQ(filteredDF.first().get<int>("a"), 1);
+}
+
+TEST(DataFrame, fromCsv)
+{
+    const std::string csvFile = "x,y,z\n1,1,1\n2,2,2\n";
+    std::stringstream ss;
+    ss << csvFile;
+    const auto dataFrame = fromCsv(ss);
+    EXPECT_EQ(dataFrame.size(), 2);
+    EXPECT_EQ(dataFrame.at(0).get<int>("x"), 1);
+    EXPECT_EQ(dataFrame.at(1).get<int>("x"), 2);
 }

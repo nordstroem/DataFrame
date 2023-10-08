@@ -1,5 +1,6 @@
 #include "DataFrame.hpp"
 #include <cassert>
+#include <fstream>
 #include <unordered_map>
 
 namespace df {
@@ -158,6 +159,64 @@ DataFrameIterator DataFrame::begin() const
 DataFrameIterator DataFrame::end() const
 {
     return DataFrameIterator(_data, _data["data"].size());
+}
+
+DataFrame fromJson(const json& data)
+{
+    return DataFrame(data);
+}
+
+DataFrame fromJson(const std::string& path)
+{
+    std::ifstream file(path);
+    assert(file.is_open());
+    return DataFrame(json::parse(file));
+}
+
+DataFrame fromCsv(const std::string& path, std::string_view delimiter)
+{
+    std::ifstream file(path);
+    assert(file.is_open());
+    return fromCsv(file, delimiter);
+}
+
+DataFrame fromCsv(std::istream& stream, std::string_view delimiter)
+{
+    json df;
+    df["data"] = json::array();
+
+    std::string line;
+    size_t lineCount = 0;
+    while (std::getline(stream, line)) {
+        const auto stringRow = splitString(line, delimiter);
+        if (lineCount == 0) {
+            df["columns"] = stringRow;
+        } else {
+            json row = json::array();
+            for (const auto& stringValue : stringRow) {
+                const json value = json::parse(stringValue, nullptr, false);
+                row.push_back(value.is_discarded() ? json(stringValue) : value);
+            }
+            df["data"].push_back(row);
+        }
+        lineCount++;
+    }
+
+    return DataFrame(df);
+}
+
+std::vector<std::string> splitString(std::string str, std::string_view delimiter)
+{
+    std::vector<std::string> row;
+    size_t pos = 0;
+    std::string token;
+    while ((pos = str.find(delimiter.data())) != std::string::npos) {
+        token = str.substr(0, pos);
+        row.push_back(token);
+        str.erase(0, pos + delimiter.length());
+    }
+    row.push_back(str);
+    return row;
 }
 
 }

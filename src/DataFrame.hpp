@@ -1,4 +1,5 @@
 #include "BooleanExpression.hpp"
+#include <istream>
 #include <memory>
 #include <nlohmann/json.hpp>
 
@@ -54,5 +55,12 @@ public:
 private:
     json _data;
 };
+
+DataFrame fromJson(const std::string& path);
+DataFrame fromJson(const json& data);
+DataFrame fromCsv(const std::string& path, std::string_view delimiter = ",");
+DataFrame fromCsv(std::istream& stream, std::string_view delimiter = ",");
+
+std::vector<std::string> splitString(std::string str, std::string_view delimiter);
 
 }
