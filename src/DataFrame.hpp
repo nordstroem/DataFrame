@@ -1,4 +1,5 @@
 #include "BooleanExpression.hpp"
+#include <memory>
 #include <nlohmann/json.hpp>
 
 namespace df {
@@ -40,9 +41,13 @@ private:
 class DataFrame {
 public:
     explicit DataFrame(const json& data);
+
     DataFrame query(std::unique_ptr<BooleanExpression> expression) const;
+    DataFrame queryEq(const std::string& column, json value) const;
     size_t size() const;
+    Series at(size_t index) const;
     Series first() const;
+
     DataFrameIterator begin() const;
     DataFrameIterator end() const;
 

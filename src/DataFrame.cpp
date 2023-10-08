@@ -9,6 +9,18 @@ Series::Series(const json& data)
 {
 }
 
+template <typename T>
+T Series::get(const std::string& column) const
+{
+    return _data[column].get<T>();
+}
+
+template int Series::get<int>(const std::string&) const;
+template uint64_t Series::get<uint64_t>(const std::string&) const;
+template float Series::get<float>(const std::string&) const;
+template double Series::get<double>(const std::string&) const;
+template std::string Series::get<std::string>(const std::string&) const;
+
 const json& Series::data() const
 {
     return _data;
@@ -54,7 +66,6 @@ DataFrame::DataFrame(const json& data)
 
 DataFrame DataFrame::query(std::unique_ptr<BooleanExpression> expression) const
 {
-
     std::unordered_map<std::string, size_t> columnMap;
     for (size_t i = 0; i < _data["columns"].size(); i++) {
         columnMap[_data["columns"][i]] = i;
@@ -97,6 +108,32 @@ DataFrame DataFrame::query(std::unique_ptr<BooleanExpression> expression) const
     return DataFrame(df);
 }
 
+DataFrame DataFrame::queryEq(const std::string& column, json value) const
+{
+    json df;
+    df["columns"] = _data["columns"];
+    df["data"] = json::array();
+
+    int columnIndex = -1;
+    for (size_t i = 0; i < _data["columns"].size(); i++) {
+        if (_data["columns"][i] == column) {
+            columnIndex = i;
+        }
+    }
+
+    if (columnIndex == -1) {
+        return DataFrame(df);
+    }
+
+    for (size_t i = 0; i < _data["data"].size(); i++) {
+        if (_data["data"][i][columnIndex] == value) {
+            df["data"].push_back(_data["data"][i]);
+        }
+    }
+
+    return DataFrame(df);
+}
+
 size_t DataFrame::size() const
 {
     return _data["data"].size();
@@ -104,7 +141,13 @@ size_t DataFrame::size() const
 
 Series DataFrame::first() const
 {
-    return *DataFrameIterator(_data, 0);
+    return at(0);
+}
+
+Series DataFrame::at(size_t index) const
+{
+    assert(index < size());
+    return *DataFrameIterator(_data, index);
 }
 
 DataFrameIterator DataFrame::begin() const

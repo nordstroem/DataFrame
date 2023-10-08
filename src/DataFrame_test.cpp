@@ -55,6 +55,8 @@ TEST(DataFrame, queryWithOrExpression)
 {
     const auto filteredDF = dataFrame.query("a"_c == 1 || "b"_c == 5);
     EXPECT_EQ(filteredDF.size(), 2);
+    EXPECT_EQ(filteredDF.at(0).get<int>("a"), 1);
+    EXPECT_EQ(filteredDF.at(1).get<int>("a"), 4);
 }
 
 TEST(DataFrame, queryWithAndExpression)
@@ -66,6 +68,13 @@ TEST(DataFrame, queryWithAndExpression)
 TEST(DataFrame, queryWithLessExpression)
 {
     const auto filteredDF = dataFrame.query("a"_c < 2);
+    EXPECT_EQ(filteredDF.size(), 1);
+    EXPECT_EQ(filteredDF.first().get<int>("a"), 1);
+}
+
+TEST(DataFrame, queryEq)
+{
+    const auto filteredDF = dataFrame.queryEq("a", 1);
     EXPECT_EQ(filteredDF.size(), 1);
     EXPECT_EQ(filteredDF.first().get<int>("a"), 1);
 }

@@ -23,18 +23,6 @@ namespace {
 
 }
 
-template <typename T>
-T Series::get(const std::string& column) const
-{
-    return _data[column].get<T>();
-}
-
-template int Series::get<int>(const std::string&) const;
-template uint64_t Series::get<uint64_t>(const std::string&) const;
-template float Series::get<float>(const std::string&) const;
-template double Series::get<double>(const std::string&) const;
-template std::string Series::get<std::string>(const std::string&) const;
-
 template <>
 Vector3f Series::get(const std::string& columns) const
 {
