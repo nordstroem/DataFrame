@@ -90,36 +90,35 @@ DataFrame::DataFrame(const json& data)
 
 DataFrame DataFrame::query(std::unique_ptr<BooleanExpression> expression) const
 {
-    auto const getOr = [](const json& col, const json& rowData) -> json {
-        if (col.is_string() && rowData.find(col) != rowData.end()) {
-            return rowData[col];
+    auto const getOr = [&](const json& col, size_t index) -> const json& {
+        if (col.is_string() && _data.find(col) != _data.end()) {
+            return _data[col][index];
         }
-        return json(col);
+        return col;
     };
 
     json df;
-    for (const Series& row : *this) {
-        const json rowData = row.data();
+    for (size_t row = 0; row < size(); row++) {
         const auto rowEvaluator = [&](const json& col1, Operator op, const json& col2) {
             switch (op) {
             case Operator::Equal:
-                return getOr(col1, rowData) == getOr(col2, rowData);
+                return getOr(col1, row) == getOr(col2, row);
             case Operator::NotEqual:
-                return getOr(col1, rowData) != getOr(col2, rowData);
+                return getOr(col1, row) != getOr(col2, row);
             case Operator::Less:
-                return getOr(col1, rowData) < getOr(col2, rowData);
+                return getOr(col1, row) < getOr(col2, row);
             case Operator::LessOrEqual:
-                return getOr(col1, rowData) <= getOr(col2, rowData);
+                return getOr(col1, row) <= getOr(col2, row);
             case Operator::Greater:
-                return getOr(col1, rowData) > getOr(col2, rowData);
+                return getOr(col1, row) > getOr(col2, row);
             case Operator::GreaterOrEqual:
-                return getOr(col1, rowData) >= getOr(col2, rowData);
+                return getOr(col1, row) >= getOr(col2, row);
             }
             return true;
         };
         if (expression->eval(rowEvaluator)) {
-            for (const auto& column : rowData.items()) {
-                df[column.key()].push_back(column.value());
+            for (const auto& col : _data.items()) {
+                df[col.key()].push_back(col.value()[row]);
             }
         }
     }
