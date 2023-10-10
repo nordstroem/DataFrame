@@ -5,6 +5,24 @@
 
 namespace df {
 
+namespace {
+    json splitToColumnFormat(const auto& data)
+    {
+        json df;
+        std::unordered_map<std::string, size_t> columnMap;
+        for (size_t i = 0; i < data["columns"].size(); i++) {
+            columnMap[data["columns"][i]] = i;
+            df[data["columns"][i]] = json::array();
+        }
+        for (size_t row = 0; row < data["data"].size(); row++) {
+            for (size_t col = 0; col < data["columns"].size(); row++) {
+                df[columnMap[data["columns"][col]]].push_back(data["data"][row][col]);
+            }
+        }
+        return df;
+    }
+}
+
 Series::Series(const json& data)
     : _data(data)
 {
@@ -27,13 +45,13 @@ const json& Series::data() const
     return _data;
 }
 
-DataFrameIterator::DataFrameIterator(json const& data, size_t index)
+DataFrameIterator::DataFrameIterator(const json& data, size_t index)
     : _data(data)
     , _index(index)
 {
 }
 
-bool DataFrameIterator::operator!=(DataFrameIterator const& other) const
+bool DataFrameIterator::operator!=(const DataFrameIterator& other) const
 {
     return &_data != &other._data || _index != other._index;
 }
@@ -52,57 +70,57 @@ Series DataFrameIterator::operator*() const
 Series DataFrameIterator::getSeries() const
 {
     json series;
-    for (size_t i = 0; i < _data["columns"].size(); i++) {
-        series[_data["columns"][i]] = _data["data"][_index][i];
+    for (const auto& column : _data.items()) {
+        series[column.key()] = _data[column.key()][_index];
     }
     return Series(series);
 }
 
 DataFrame::DataFrame(const json& data)
-    : _data(data)
 {
-    assert(data.find("columns") != data.end());
-    assert(data.find("data") != data.end());
+    const bool isSplitFormat = data.find("columns") != data.end() && data.find("data") != data.end();
+    _data = isSplitFormat ? splitToColumnFormat(data) : data;
+
+    _size = 0;
+    for (const auto& column : _data) {
+        assert(_size == 0 || _size == column.size());
+        _size = column.size();
+    }
 }
 
 DataFrame DataFrame::query(std::unique_ptr<BooleanExpression> expression) const
 {
-    std::unordered_map<std::string, size_t> columnMap;
-    for (size_t i = 0; i < _data["columns"].size(); i++) {
-        columnMap[_data["columns"][i]] = i;
-    }
-
-    auto const getOr = [&](const json& col, size_t index) -> json {
-        if (col.is_string() && columnMap.find(col) != columnMap.end()) {
-            return _data["data"][index][columnMap[col]];
+    auto const getOr = [](const json& col, const json& rowData) -> json {
+        if (col.is_string() && rowData.find(col) != rowData.end()) {
+            return rowData[col];
         }
         return json(col);
     };
 
     json df;
-    df["columns"] = _data["columns"];
-    df["data"] = json::array();
-
-    for (size_t i = 0; i < _data["data"].size(); i++) {
-        auto const rowEvaluator = [&](const json& col1, Operator op, const json& col2) {
+    for (const Series& row : *this) {
+        const json rowData = row.data();
+        const auto rowEvaluator = [&](const json& col1, Operator op, const json& col2) {
             switch (op) {
             case Operator::Equal:
-                return getOr(col1, i) == getOr(col2, i);
+                return getOr(col1, rowData) == getOr(col2, rowData);
             case Operator::NotEqual:
-                return getOr(col1, i) != getOr(col2, i);
+                return getOr(col1, rowData) != getOr(col2, rowData);
             case Operator::Less:
-                return getOr(col1, i) < getOr(col2, i);
+                return getOr(col1, rowData) < getOr(col2, rowData);
             case Operator::LessOrEqual:
-                return getOr(col1, i) <= getOr(col2, i);
+                return getOr(col1, rowData) <= getOr(col2, rowData);
             case Operator::Greater:
-                return getOr(col1, i) > getOr(col2, i);
+                return getOr(col1, rowData) > getOr(col2, rowData);
             case Operator::GreaterOrEqual:
-                return getOr(col1, i) >= getOr(col2, i);
+                return getOr(col1, rowData) >= getOr(col2, rowData);
             }
             return true;
         };
         if (expression->eval(rowEvaluator)) {
-            df["data"].push_back(_data["data"][i]);
+            for (const auto& column : rowData.items()) {
+                df[column.key()].push_back(column.value());
+            }
         }
     }
 
@@ -112,23 +130,21 @@ DataFrame DataFrame::query(std::unique_ptr<BooleanExpression> expression) const
 DataFrame DataFrame::queryEq(std::string_view column, const json& value) const
 {
     json df;
-    df["columns"] = _data["columns"];
-    df["data"] = json::array();
-
-    int columnIndex = -1;
-    for (size_t i = 0; i < _data["columns"].size(); i++) {
-        if (_data["columns"][i] == column) {
-            columnIndex = i;
-        }
-    }
-
-    if (columnIndex == -1) {
+    if (_data.find(column) == _data.end()) {
         return DataFrame(df);
     }
 
-    for (size_t i = 0; i < _data["data"].size(); i++) {
-        if (_data["data"][i][columnIndex] == value) {
-            df["data"].push_back(_data["data"][i]);
+    for (const auto& col : _data.items()) {
+        df[col.key()] = json::array();
+    }
+
+    const json& columnOfInterest = _data[column];
+
+    for (size_t row = 0; row < size(); row++) {
+        if (columnOfInterest[row] == value) {
+            for (const auto& col : _data.items()) {
+                df[col.key()].push_back(col.value()[row]);
+            }
         }
     }
 
@@ -137,7 +153,7 @@ DataFrame DataFrame::queryEq(std::string_view column, const json& value) const
 
 size_t DataFrame::size() const
 {
-    return _data["data"].size();
+    return _size;
 }
 
 Series DataFrame::first() const
@@ -158,7 +174,7 @@ DataFrameIterator DataFrame::begin() const
 
 DataFrameIterator DataFrame::end() const
 {
-    return DataFrameIterator(_data, _data["data"].size());
+    return DataFrameIterator(_data, _size);
 }
 
 DataFrame fromJson(const json& data)
@@ -183,21 +199,22 @@ DataFrame fromCsv(std::string_view path, std::string_view delimiter)
 DataFrame fromCsv(std::istream& stream, std::string_view delimiter)
 {
     json df;
-    df["data"] = json::array();
-
     std::string line;
     size_t lineCount = 0;
+    std::unordered_map<size_t, std::string> columnMap;
+
     while (std::getline(stream, line)) {
         const auto stringRow = splitString(line, delimiter);
         if (lineCount == 0) {
-            df["columns"] = stringRow;
-        } else {
-            json row = json::array();
-            for (const auto& stringValue : stringRow) {
-                const json value = json::parse(stringValue, nullptr, false);
-                row.push_back(value.is_discarded() ? json(stringValue) : value);
+            for (size_t i = 0; i < stringRow.size(); i++) {
+                df[stringRow[i]] = json::array();
+                columnMap[i] = stringRow[i];
             }
-            df["data"].push_back(row);
+        } else {
+            for (size_t i = 0; i < stringRow.size(); i++) {
+                const json value = json::parse(stringRow[i], nullptr, false);
+                df[columnMap[i]].push_back(value.is_discarded() ? json(columnMap[i]) : value);
+            }
         }
         lineCount++;
     }

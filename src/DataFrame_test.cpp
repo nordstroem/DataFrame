@@ -1,21 +1,31 @@
 #include "DataFrame.hpp"
 #include "gtest/gtest.h"
 #include <Eigen/Core>
+#include <fstream>
 #include <iostream>
 
 using namespace df;
+using namespace nlohmann;
 using namespace nlohmann::literals;
 using namespace Eigen;
 
 namespace {
-static const json testJson = R"(
+static const json splitJson = R"(
         {
             "columns": ["a","b","c"],
             "data": [[1,2,3],[4,5,6]]
         }
     )"_json;
 
-static const DataFrame dataFrame(testJson);
+static const json columnJson = R"(
+    {
+        "a": [1, 4],
+        "b": [2, 5],
+        "c": [3, 6]
+    }
+)"_json;
+
+static const DataFrame dataFrame(columnJson);
 }
 
 TEST(DataFrame, iterateThroughDF)

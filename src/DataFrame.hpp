@@ -27,8 +27,8 @@ struct DataFrameIterator {
     using pointer = value_type*;
     using reference = value_type&;
 
-    DataFrameIterator(json const& data, size_t index);
-    bool operator!=(DataFrameIterator const& other) const;
+    DataFrameIterator(const json& data, size_t index);
+    bool operator!=(const DataFrameIterator& other) const;
 
     DataFrameIterator& operator++();
     Series operator*() const;
@@ -54,6 +54,7 @@ public:
 
 private:
     json _data;
+    size_t _size;
 };
 
 DataFrame fromJson(std::string_view path);
