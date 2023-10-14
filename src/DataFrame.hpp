@@ -1,3 +1,4 @@
+#pragma once
 #include "BooleanExpression.hpp"
 #include <istream>
 #include <memory>
@@ -7,13 +8,22 @@ namespace df {
 
 using json = nlohmann::json;
 
+template <typename T>
+struct SeriesConverter {
+    static T convert(const json& data, std::string_view column)
+    {
+        return data[column].get<T>();
+    }
+};
+
 class Series {
 public:
     explicit Series(const json& data);
-
     template <typename T>
-    T get(const std::string_view columns) const;
-
+    T get(const std::string_view columns) const
+    {
+        return SeriesConverter<T>::convert(_data, columns);
+    }
     const json& data() const;
 
 private:

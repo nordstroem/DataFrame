@@ -28,18 +28,6 @@ Series::Series(const json& data)
 {
 }
 
-template <typename T>
-T Series::get(std::string_view column) const
-{
-    return _data[column].get<T>();
-}
-
-template int Series::get<int>(std::string_view) const;
-template uint64_t Series::get<uint64_t>(std::string_view) const;
-template float Series::get<float>(std::string_view) const;
-template double Series::get<double>(std::string_view) const;
-template std::string Series::get<std::string>(std::string_view) const;
-
 const json& Series::data() const
 {
     return _data;

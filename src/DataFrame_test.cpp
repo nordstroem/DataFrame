@@ -1,4 +1,5 @@
 #include "DataFrame.hpp"
+#include "EigenConversions.hpp"
 #include "gtest/gtest.h"
 #include <Eigen/Core>
 #include <fstream>
@@ -99,4 +100,24 @@ TEST(DataFrame, fromCsv)
     EXPECT_EQ(dataFrame.size(), 2);
     EXPECT_EQ(dataFrame.at(0).get<int>("x"), 1);
     EXPECT_EQ(dataFrame.at(1).get<int>("x"), 2);
+}
+
+TEST(DataFrame, vector3fFromJsonObject)
+{
+    const json j = R"({"x": 1.0, "y": 2.0, "z": 3.0})"_json;
+    Vector3f const v = j.get<Vector3f>();
+
+    EXPECT_FLOAT_EQ(v.x(), 1.0f);
+    EXPECT_FLOAT_EQ(v.y(), 2.0f);
+    EXPECT_FLOAT_EQ(v.z(), 3.0f);
+}
+
+TEST(DataFrame, vector3fFromJsonArray)
+{
+    const json j = R"([1.0, 2.0, 3.0])"_json;
+    Vector3f const v = j.get<Vector3f>();
+
+    EXPECT_FLOAT_EQ(v.x(), 1.0f);
+    EXPECT_FLOAT_EQ(v.y(), 2.0f);
+    EXPECT_FLOAT_EQ(v.z(), 3.0f);
 }
