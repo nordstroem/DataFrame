@@ -51,6 +51,25 @@ private:
 
 class DataFrame {
 public:
+    /**
+     * Constructs a new DataFrame.
+     * @param data A json object in one of the following formats:
+     * 1. Split format:
+     *   {
+     *    "columns": ["col1", "col2", ...],
+     *    "data": [[1, 2, ...], [3, 4, ...], ...]
+     *   }
+     * 2. Column format:
+     *   {
+     *    "col1": [1, 3, ...],
+     *    "col2": [2, 4, ...],
+     *    ...
+     *   }
+     * 3. Array: (empty with only column names)
+     *   ["col1", "col2", ...]
+     * @note DataFrames can be constructed directly from a json or csv file by using the
+     * free functions fromJson and fromCsv.
+     */
     explicit DataFrame(const json& data);
     void addRow(const json& row);
 
@@ -77,6 +96,9 @@ DataFrame fromCsv(std::istream& stream, std::string_view delimiter = ",");
 
 std::vector<std::string> splitString(std::string str, std::string_view delimiter);
 
+/**
+ * A wrapper around a DataFrame that writes the DataFrame to a file, in csv format, when it goes out of scope.
+ */
 class DataFrameWriter {
 public:
     DataFrameWriter(const json& data, std::string_view path);
