@@ -151,11 +151,11 @@ TEST(DataFrame, vector3fFromJsonArray)
     EXPECT_FLOAT_EQ(v.z(), 3.0f);
 }
 
-TEST(DataFrame, scopedDataFrame)
+TEST(DataFrame, dataFrameWriter)
 {
-    const std::string path = "DataFramescopedDataFrame_test.csv";
+    const std::string path = "DataFrameDataFrameWriter_test.csv";
     {
-        ScopedDataFrame df(columnJson, path);
+        DataFrameWriter df(columnJson, path);
         df->addRow({ { "a", 7 }, { "b", 8 }, { "c", 9 } });
         EXPECT_EQ(df->size(), 3);
         EXPECT_EQ(df->at(0).get<int>("a"), 1);

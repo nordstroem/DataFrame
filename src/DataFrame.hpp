@@ -77,15 +77,15 @@ DataFrame fromCsv(std::istream& stream, std::string_view delimiter = ",");
 
 std::vector<std::string> splitString(std::string str, std::string_view delimiter);
 
-class ScopedDataFrame {
+class DataFrameWriter {
 public:
-    ScopedDataFrame(const json& data, std::string_view path);
-    ~ScopedDataFrame();
+    DataFrameWriter(const json& data, std::string_view path);
+    ~DataFrameWriter();
 
-    ScopedDataFrame(const ScopedDataFrame&) = delete;
-    ScopedDataFrame(ScopedDataFrame&&) = delete;
-    ScopedDataFrame& operator=(const ScopedDataFrame&) = delete;
-    ScopedDataFrame& operator=(ScopedDataFrame&&) = delete;
+    DataFrameWriter(const DataFrameWriter&) = delete;
+    DataFrameWriter(DataFrameWriter&&) = delete;
+    DataFrameWriter& operator=(const DataFrameWriter&) = delete;
+    DataFrameWriter& operator=(DataFrameWriter&&) = delete;
 
     DataFrame* operator->();
     DataFrame const* operator->() const;

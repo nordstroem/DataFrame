@@ -275,22 +275,22 @@ std::vector<std::string> splitString(std::string str, std::string_view delimiter
     return row;
 }
 
-ScopedDataFrame::ScopedDataFrame(const json& data, std::string_view path)
+DataFrameWriter::DataFrameWriter(const json& data, std::string_view path)
     : _dataFrame(data)
     , _path(path)
 {
 }
-DataFrame* ScopedDataFrame::operator->()
+DataFrame* DataFrameWriter::operator->()
 {
     return &_dataFrame;
 }
 
-DataFrame const* ScopedDataFrame::operator->() const
+DataFrame const* DataFrameWriter::operator->() const
 {
     return &_dataFrame;
 }
 
-ScopedDataFrame::~ScopedDataFrame()
+DataFrameWriter::~DataFrameWriter()
 {
     _dataFrame.toCsv(_path);
 }
