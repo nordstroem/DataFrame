@@ -4,7 +4,7 @@
 #include <cassert>
 #include <nlohmann/json.hpp>
 
-namespace df {
+namespace jdf {
 
 template <>
 struct SeriesConverter<Eigen::Vector3f> {

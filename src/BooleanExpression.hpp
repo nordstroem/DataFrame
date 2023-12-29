@@ -4,7 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 
-namespace df {
+namespace jdf {
 using json = nlohmann::json;
 
 class ExpressionValue {

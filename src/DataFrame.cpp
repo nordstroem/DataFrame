@@ -4,7 +4,7 @@
 #include <iostream>
 #include <unordered_map>
 
-namespace df {
+namespace jdf {
 
 namespace {
     json splitToColumnFormat(const auto& data)

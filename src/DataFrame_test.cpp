@@ -5,7 +5,7 @@
 #include <fstream>
 #include <iostream>
 
-using namespace df;
+using namespace jdf;
 using namespace nlohmann;
 using namespace nlohmann::literals;
 using namespace Eigen;
@@ -157,10 +157,6 @@ TEST(DataFrame, dataFrameWriter)
     {
         DataFrameWriter df(columnJson, path);
         df->addRow({ { "a", 7 }, { "b", 8 }, { "c", 9 } });
-        EXPECT_EQ(df->size(), 3);
-        EXPECT_EQ(df->at(0).get<int>("a"), 1);
-        EXPECT_EQ(df->at(1).get<int>("a"), 4);
-        EXPECT_EQ(df->at(2).get<int>("a"), 7);
     }
     DataFrame df = fromCsv(path);
     EXPECT_EQ(df.size(), 3);

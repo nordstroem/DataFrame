@@ -4,7 +4,7 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 
-namespace df {
+namespace jdf {
 
 using json = nlohmann::json;
 

@@ -1,6 +1,6 @@
 #include "BooleanExpression.hpp"
 
-namespace df {
+namespace jdf {
 
 ExpressionValue operator""_c(const char* str, std::size_t)
 {
