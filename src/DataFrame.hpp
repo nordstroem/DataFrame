@@ -53,11 +53,14 @@ class DataFrame {
 public:
     explicit DataFrame(const json& data);
 
+    void addRow(const json& row);
     DataFrame query(std::unique_ptr<BooleanExpression> expression) const;
     DataFrame queryEq(std::string_view column, const json& value) const;
     size_t size() const;
     Series at(size_t index) const;
     Series first() const;
+    void toCsv(std::ostream& stream, std::string_view delimiter = ",") const;
+    void toCsv(std::string_view path, std::string_view delimiter = ",") const;
 
     DataFrameIterator begin() const;
     DataFrameIterator end() const;

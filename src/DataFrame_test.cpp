@@ -91,6 +91,35 @@ TEST(DataFrame, queryEq)
     EXPECT_EQ(filteredDF.first().get<int>("a"), 1);
 }
 
+TEST(DataFrame, addRow)
+{
+    DataFrame df(columnJson);
+    EXPECT_EQ(df.size(), 2);
+    df.addRow({ { "a", 7 }, { "b", 8 }, { "c", 9 } });
+    EXPECT_EQ(df.size(), 3);
+    EXPECT_EQ(df.at(2).get<int>("a"), 7);
+    EXPECT_EQ(df.at(2).get<int>("b"), 8);
+    EXPECT_EQ(df.at(2).get<int>("c"), 9);
+}
+
+TEST(DataFrame, addRowOnEmptyDataFrame)
+{
+    DataFrame df({ "a", "b", "c" });
+    EXPECT_EQ(df.size(), 0);
+    df.addRow({ { "a", 7 }, { "b", 8 }, { "c", 9 } });
+    EXPECT_EQ(df.size(), 1);
+    EXPECT_EQ(df.at(0).get<int>("a"), 7);
+    EXPECT_EQ(df.at(0).get<int>("b"), 8);
+    EXPECT_EQ(df.at(0).get<int>("c"), 9);
+}
+
+TEST(DataFrame, toCsv)
+{
+    std::stringstream ss;
+    dataFrame.toCsv(ss);
+    EXPECT_EQ(ss.str(), "a,b,c\n1,2,3\n4,5,6\n");
+}
+
 TEST(DataFrame, fromCsv)
 {
     const std::string csvFile = "x,y,z\n1,1,1\n2,2,2\n";

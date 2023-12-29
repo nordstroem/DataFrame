@@ -1,6 +1,7 @@
 #include "DataFrame.hpp"
 #include <cassert>
 #include <fstream>
+#include <iostream>
 #include <unordered_map>
 
 namespace df {
@@ -66,6 +67,15 @@ Series DataFrameIterator::getSeries() const
 
 DataFrame::DataFrame(const json& data)
 {
+    const bool isOnlyHeader = data.is_array();
+    if (isOnlyHeader) {
+        for (const auto& column : data) {
+            _data[column] = json::array();
+        }
+        _size = 0;
+        return;
+    }
+
     const bool isSplitFormat = data.find("columns") != data.end() && data.find("data") != data.end();
     _data = isSplitFormat ? splitToColumnFormat(data) : data;
 
@@ -74,6 +84,16 @@ DataFrame::DataFrame(const json& data)
         assert(_size == 0 || _size == column.size());
         _size = column.size();
     }
+}
+
+void DataFrame::addRow(const json& row)
+{
+    assert(row.size() == _data.size());
+    for (const auto& column : row.items()) {
+        assert(_data.find(column.key()) != _data.end());
+        _data[column.key()].push_back(column.value());
+    }
+    _size++;
 }
 
 DataFrame DataFrame::query(std::unique_ptr<BooleanExpression> expression) const
@@ -152,6 +172,38 @@ Series DataFrame::at(size_t index) const
 {
     assert(index < size());
     return *DataFrameIterator(_data, index);
+}
+
+void DataFrame::toCsv(std::ostream& stream, std::string_view delimiter) const
+{
+    const size_t columnCount = _data.size();
+    size_t currentColumn = 0;
+    for (const auto& column : _data.items()) {
+        stream << column.key();
+        if (currentColumn < columnCount - 1) {
+            stream << delimiter;
+        }
+        currentColumn++;
+    }
+    stream << "\n";
+    for (size_t row = 0; row < size(); row++) {
+        currentColumn = 0;
+        for (const auto& column : _data.items()) {
+            stream << column.value()[row];
+            if (currentColumn < columnCount - 1) {
+                stream << delimiter;
+            }
+            currentColumn++;
+        }
+        stream << "\n";
+    }
+}
+
+void DataFrame::toCsv(std::string_view path, std::string_view delimiter = ",") const
+{
+    std::ofstream file(std::string { path });
+    assert(file.is_open());
+    toCsv(file, delimiter);
 }
 
 DataFrameIterator DataFrame::begin() const
