@@ -150,3 +150,22 @@ TEST(DataFrame, vector3fFromJsonArray)
     EXPECT_FLOAT_EQ(v.y(), 2.0f);
     EXPECT_FLOAT_EQ(v.z(), 3.0f);
 }
+
+TEST(DataFrame, scopedDataFrame)
+{
+    const std::string path = "DataFramescopedDataFrame_test.csv";
+    {
+        ScopedDataFrame df(columnJson, path);
+        df->addRow({ { "a", 7 }, { "b", 8 }, { "c", 9 } });
+        EXPECT_EQ(df->size(), 3);
+        EXPECT_EQ(df->at(0).get<int>("a"), 1);
+        EXPECT_EQ(df->at(1).get<int>("a"), 4);
+        EXPECT_EQ(df->at(2).get<int>("a"), 7);
+    }
+    DataFrame df = fromCsv(path);
+    EXPECT_EQ(df.size(), 3);
+    EXPECT_EQ(df.at(0).get<int>("a"), 1);
+    EXPECT_EQ(df.at(1).get<int>("a"), 4);
+    EXPECT_EQ(df.at(2).get<int>("a"), 7);
+    std::remove(path.c_str());
+}

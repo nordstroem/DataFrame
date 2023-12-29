@@ -199,7 +199,7 @@ void DataFrame::toCsv(std::ostream& stream, std::string_view delimiter) const
     }
 }
 
-void DataFrame::toCsv(std::string_view path, std::string_view delimiter = ",") const
+void DataFrame::toCsv(std::string_view path, std::string_view delimiter) const
 {
     std::ofstream file(std::string { path });
     assert(file.is_open());
@@ -273,6 +273,26 @@ std::vector<std::string> splitString(std::string str, std::string_view delimiter
     }
     row.push_back(str);
     return row;
+}
+
+ScopedDataFrame::ScopedDataFrame(const json& data, std::string_view path)
+    : _dataFrame(data)
+    , _path(path)
+{
+}
+DataFrame* ScopedDataFrame::operator->()
+{
+    return &_dataFrame;
+}
+
+DataFrame const* ScopedDataFrame::operator->() const
+{
+    return &_dataFrame;
+}
+
+ScopedDataFrame::~ScopedDataFrame()
+{
+    _dataFrame.toCsv(_path);
 }
 
 }

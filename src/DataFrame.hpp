@@ -52,8 +52,8 @@ private:
 class DataFrame {
 public:
     explicit DataFrame(const json& data);
-
     void addRow(const json& row);
+
     DataFrame query(std::unique_ptr<BooleanExpression> expression) const;
     DataFrame queryEq(std::string_view column, const json& value) const;
     size_t size() const;
@@ -76,5 +76,23 @@ DataFrame fromCsv(std::string_view path, std::string_view delimiter = ",");
 DataFrame fromCsv(std::istream& stream, std::string_view delimiter = ",");
 
 std::vector<std::string> splitString(std::string str, std::string_view delimiter);
+
+class ScopedDataFrame {
+public:
+    ScopedDataFrame(const json& data, std::string_view path);
+    ~ScopedDataFrame();
+
+    ScopedDataFrame(const ScopedDataFrame&) = delete;
+    ScopedDataFrame(ScopedDataFrame&&) = delete;
+    ScopedDataFrame& operator=(const ScopedDataFrame&) = delete;
+    ScopedDataFrame& operator=(ScopedDataFrame&&) = delete;
+
+    DataFrame* operator->();
+    DataFrame const* operator->() const;
+
+private:
+    DataFrame _dataFrame;
+    std::string _path;
+};
 
 }
